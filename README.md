@@ -651,3 +651,9 @@ src/
 ## License
 
 MIT
+### Usage (Tampermonkey)
+
+You can now use the SDK directly in Tampermonkey by installing the  script.
+The SDK will be available globally as .
+
+
