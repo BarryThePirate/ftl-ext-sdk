@@ -22,9 +22,61 @@ import { site, chat, ui, socket } from 'ftl-ext-sdk';
 
 ### Tampermonkey / Greasemonkey
 
-[Implementation Bounty Open](https://github.com/BarryThePirate/ftl-ext-sdk/issues/1). Reward: ₣1,000 Site Tokens.
+The SDK ships a pre-built UMD bundle that exposes `window.FTL`. All socket dependencies (`socket.io-client` and `socket.io-msgpack-parser`) are bundled in — no separate `@require` entries needed.
 
-Support planned. The SDK currently uses ES module exports and needs a UMD/IIFE bundle with `window.FTL` for userscript environments.
+**Prerequisites**
+
+- [Tampermonkey](https://tampermonkey.net/) (Chrome, Edge, Firefox, Opera, Safari) or Greasemonkey 4+
+- Firefox note: the bundle includes a cross-realm `ArrayBuffer` fix so chat decoding works correctly in Firefox content-script context
+
+**Installation options**
+
+Option A — Direct `@require` (recommended):
+
+```javascript
+// ==UserScript==
+// @name         My Fishtank Script
+// @namespace    https://fishtank.live
+// @match        https://fishtank.live/*
+// @grant        none
+// @require      https://raw.githubusercontent.com/TeapoyY/ftl-ext-sdk/v1.0.0/dist/ftl-ext-sdk.bundle.min.js
+// ==/UserScript==
+
+(function () {
+  const { socket, chat, ui } = window.FTL;
+
+  socket.connect({ token: null }).then(() => {
+    chat.messages.onMessage((msg) => {
+      console.log(`[${msg.username}]: ${msg.message}`);
+      ui.toasts.notify(`${msg.username}: ${msg.message}`, { duration: 3000 });
+    });
+  });
+})();
+```
+
+Option B — Build your own bundle:
+
+```bash
+git clone https://github.com/TeapoyY/ftl-ext-sdk.git
+cd ftl-ext-sdk
+npm install
+npm run build   # outputs dist/ftl-ext-sdk.bundle.js and .min.js
+```
+
+Then host the bundle somewhere and reference it via `@require`. The example userscript is at [`userscript-example.js`](userscript-example.js).
+
+**UMD bundle contents**
+
+| Module | Exported as |
+|--------|-------------|
+| `core/socket.js` | `FTL.socket` |
+| `core/events.js` | `FTL.events` |
+| `core/dom.js` | `FTL.dom` |
+| `core/site-detect.js` | `FTL.site` |
+| `core/storage.js` | `FTL.storage` |
+| `chat/index.js` | `FTL.chat` |
+| `player/index.js` | `FTL.player` |
+| `ui/index.js` | `FTL.ui` |
 
 ## Quick Start
 
