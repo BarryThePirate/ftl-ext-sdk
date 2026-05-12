@@ -22,9 +22,32 @@ import { site, chat, ui, socket } from 'ftl-ext-sdk';
 
 ### Tampermonkey / Greasemonkey
 
-[Implementation Bounty Open](https://github.com/BarryThePirate/ftl-ext-sdk/issues/1). Reward: ₣1,000 Site Tokens.
+Install the userscript manager for your browser, then add `dist/ftl-ext-sdk.bundle.min.js` with `@require`.
 
-Support planned. The SDK currently uses ES module exports and needs a UMD/IIFE bundle with `window.FTL` for userscript environments.
+```js
+// ==UserScript==
+// @name         Fishtank Live SDK example
+// @match        https://fishtank.live/*
+// @match        https://www.fishtank.live/*
+// @grant        none
+// @require      https://cdn.jsdelivr.net/gh/BarryThePirate/ftl-ext-sdk@main/dist/ftl-ext-sdk.bundle.min.js
+// ==/UserScript==
+```
+
+The bundle is self-contained: Socket.IO and the MessagePack parser are included, and the SDK is available as `window.FTL`.
+
+```js
+await FTL.site.whenReady();
+await FTL.socket.connect({ token: null });
+
+FTL.chat.messages.onMessage((msg) => {
+  console.log(`[${msg.username || 'unknown'}] ${msg.message || ''}`);
+});
+
+FTL.ui.toasts.notify('FTL userscript connected', { type: 'success' });
+```
+
+A complete example is available in [`examples/ftl-userscript.user.js`](examples/ftl-userscript.user.js).
 
 ## Quick Start
 
@@ -86,6 +109,7 @@ See also:
 ```bash
 npm install
 npm run build    # Builds dist/ftl-ext-sdk.bundle.js
+npm run verify:userscript
 npm run watch    # Rebuild on changes
 ```
 
