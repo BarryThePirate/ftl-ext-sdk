@@ -22,11 +22,40 @@ import { site, chat, ui, socket } from 'ftl-ext-sdk';
 
 ### Tampermonkey / Greasemonkey
 
-[Implementation Bounty Open](https://github.com/BarryThePirate/ftl-ext-sdk/issues/1). Reward: ₣1,000 Site Tokens.
+Use the bundled UMD build from a userscript `@require`. It exposes the SDK as
+`window.FTL` and includes the Socket.IO + MessagePack dependencies, so no
+separate `@require` entries are needed.
 
-Support planned. The SDK currently uses ES module exports and needs a UMD/IIFE bundle with `window.FTL` for userscript environments.
+```js
+// ==UserScript==
+// @name         Fishtank Live SDK Example
+// @match        https://fishtank.live/*
+// @match        https://www.fishtank.live/*
+// @match        https://classic.fishtank.live/*
+// @require      https://cdn.jsdelivr.net/npm/ftl-ext-sdk/dist/ftl-ext-sdk.bundle.min.js
+// @grant        none
+// ==/UserScript==
+
+(async function () {
+  const { site, chat, socket, ui } = window.FTL;
+
+  site.whenReady(async () => {
+    chat.messages.onMessage((msg) => {
+      console.log(`[${msg.chatRoom}] ${msg.username}: ${msg.message}`);
+    });
+
+    await socket.connect({ token: null });
+    ui.toasts.notify('FTL SDK connected', { type: 'success' });
+  });
+})();
+```
+
+See [`examples/tampermonkey-chat-toast.user.js`](examples/tampermonkey-chat-toast.user.js)
+for a complete example script.
 
 ## Quick Start
+
+### Browser extension / bundler
 
 ```js
 import { site, chat, ui, socket, events } from 'ftl-ext-sdk';
@@ -53,6 +82,28 @@ site.whenReady(async () => {
 ```
 
 Socket listeners start automatically when you register a callback — no manual setup step needed.
+
+### Userscript
+
+```js
+const { site, chat, ui, socket, events } = window.FTL;
+
+site.whenReady(async () => {
+
+    // Uses the Socket.IO and MessagePack dependencies bundled into window.FTL.
+    await socket.connect({ token: null });
+
+    chat.messages.onMessage((msg) => {
+        console.log(`[${msg.role || 'user'}] ${msg.username}: ${msg.message}`);
+    });
+
+    events.onModalEvent((action, detail) => {
+        console.log(`Modal ${action}:`, detail?.modal);
+    });
+
+    ui.toasts.notify('Userscript loaded!', { type: 'success' });
+});
+```
 
 ## Modules
 
@@ -85,8 +136,9 @@ See also:
 
 ```bash
 npm install
-npm run build    # Builds dist/ftl-ext-sdk.bundle.js
-npm run watch    # Rebuild on changes
+npm run build        # Builds dist/ftl-ext-sdk.bundle.js
+npm run test:bundle  # Builds and verifies the userscript bundle
+npm run watch        # Rebuild on changes
 ```
 
 ## Architecture
