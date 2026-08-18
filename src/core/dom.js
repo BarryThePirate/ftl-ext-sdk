@@ -78,13 +78,25 @@ export function getChatScrollContainer() {
 }
 
 /**
- * Get the video element from the live stream player.
- * 
+ * Get the currently focused player's video element.
+ *
+ * Live (HLS): the <video> inside #live-stream-player.
+ * VOD/archive: no #live-stream-player exists — the site promotes the
+ * clicked tile's <video> into an id-less fixed wrapper (grid tile videos
+ * sit in static wrappers, so a .fixed ancestor uniquely identifies it).
+ * Videos owned by extension UIs (data-ftl-sdk) are never returned.
+ *
  * @returns {HTMLVideoElement|null}
  */
 export function getVideoElement() {
   const player = byId(IDS.LIVE_STREAM_PLAYER);
-  return player?.querySelector('video') || null;
+  const live = player?.querySelector('video');
+  if (live) return live;
+  for (const v of document.querySelectorAll('video')) {
+    if (v.closest('[data-ftl-sdk]')) continue;
+    if (v.closest('.fixed')) return v;
+  }
+  return null;
 }
 
 /**

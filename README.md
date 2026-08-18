@@ -60,6 +60,7 @@ Socket listeners start automatically when you register a callback — no manual 
 |--------|-------------|
 | [`site`](https://github.com/BarryThePirate/ftl-ext-sdk/wiki/Site) | Detect site version, ready state, and the logged-in user |
 | [`socket`](https://github.com/BarryThePirate/ftl-ext-sdk/wiki/Socket) | Socket.IO connection to the fishtank.live WebSocket server |
+| [`archives`](https://github.com/BarryThePirate/ftl-ext-sdk/wiki/Archives) | Season archive listings, signed watch URLs, and schedule helpers |
 | [`chat.messages`](https://github.com/BarryThePirate/ftl-ext-sdk/wiki/Chat-Messages) | Normalised chat, TTS, and SFX events from Socket.IO |
 | [`chat.rooms`](https://github.com/BarryThePirate/ftl-ext-sdk/wiki/Chat-Rooms) | Subscribe to Season Pass and Season Pass XL rooms |
 | [`chat.input`](https://github.com/BarryThePirate/ftl-ext-sdk/wiki/Chat-Input) | Helpers for the chat input field |
@@ -94,6 +95,7 @@ npm run watch    # Rebuild on changes
 ```
 src/
 ├── core/           — Low-level: React fiber, Socket.IO, DOM, events, storage, transport
+├── archives/       — Season archive API: listings, signed watch URLs, schedule helpers
 ├── chat/           — Chat observation (DOM + Socket.IO), input helpers
 ├── player/         — Video player, stream/room name resolution
 ├── ui/             — Keyboard shortcuts, modals, toasts, toast observer, downloads

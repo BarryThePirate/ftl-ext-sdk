@@ -22,6 +22,7 @@ export * as transport from './core/transport.js';
 export * as debug from './core/debug.js';
 
 // Feature Modules
+export * as archives from './archives/index.js';
 export * as chat from './chat/index.js';
 export * as player from './player/index.js';
 export * as ui from './ui/index.js';
