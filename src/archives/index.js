@@ -321,6 +321,71 @@ export function formatHouseDate(ms) {
   return houseWallString(ms).slice(0, 10);
 }
 
+// ── Share codes ─────────────────────────────────────────────────────
+// A share code pins a moment in a season to a compact, human-readable
+// string that means the same real moment for everyone:
+//
+//   FTL1-s03-D11-1817-kitchen
+//   └┬─┘ └┬┘ └┬┘ └┬─┘ └──┬──┘
+// version season day HHMM  room (optional)
+//
+// Day and time are HOUSE time (see above), so a code reads naturally
+// in chat AND resolves to the same absolute moment for every user.
+// Codes also travel as links via the URL fragment:
+// https://fishtank.live/#FTL1-s03-D11-1817-kitchen (fragments never
+// reach the server; extensions pick them up client-side).
+
+const SHARE_CODE_RE = /^FTL1-(s\d{2})-D(\d{1,2})-(\d{2})(\d{2})(?:-([a-z0-9-]+))?$/i;
+
+/**
+ * Build a share code from structured fields.
+ *
+ * @param {{season: string, day: number, time: string, room?: string|null}} parts
+ *   - season e.g. 's03'; day 1-based; time 'HH:MM' house-local 24h;
+ *     room code or null for "land on the grid"
+ * @returns {string} e.g. 'FTL1-s03-D11-1817-kitchen'
+ */
+export function buildShareCode({ season, day, time, room }) {
+  return `FTL1-${season}-D${day}-${time.replace(':', '')}${room ? `-${room}` : ''}`;
+}
+
+/**
+ * Parse a share code or share link. Accepts bare codes, full URLs, and
+ * '#'-prefixed fragments; case-insensitive; whitespace-tolerant.
+ *
+ * @param {string} input
+ * @returns {{season: string, day: number, time: string, room: string|null}|null}
+ *   null if the input isn't a valid code
+ */
+export function parseShareCode(input) {
+  if (typeof input !== 'string') return null;
+  let str = input.trim();
+  const hashIdx = str.indexOf('#');
+  if (hashIdx !== -1) str = str.slice(hashIdx + 1);
+  const m = str.match(SHARE_CODE_RE);
+  if (!m) return null;
+  const day = parseInt(m[2], 10);
+  const hh = parseInt(m[3], 10);
+  const mm = parseInt(m[4], 10);
+  if (day < 1 || hh > 23 || mm > 59) return null;
+  return {
+    season: m[1].toLowerCase(),
+    day,
+    time: `${m[3]}:${m[4]}`,
+    room: m[5] ? m[5].toLowerCase() : null,
+  };
+}
+
+/**
+ * The clickable-link form of a share code.
+ *
+ * @param {string} code
+ * @returns {string}
+ */
+export function shareUrl(code) {
+  return `https://fishtank.live/#${code}`;
+}
+
 // ── Schedule helpers ────────────────────────────────────────────────
 
 /**
