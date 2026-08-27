@@ -325,28 +325,31 @@ export function formatHouseDate(ms) {
 // A share code pins a moment in a season to a compact, human-readable
 // string that means the same real moment for everyone:
 //
-//   FTL1-s03-D11-1817-kitchen
-//   └┬─┘ └┬┘ └┬┘ └┬─┘ └──┬──┘
-// version season day HHMM  room (optional)
+//   FTL1-s03-D11-181745-kitchen
+//   └┬─┘ └┬┘ └┬┘ └─┬──┘ └──┬──┘
+// version season day HHMMSS room (optional)
 //
 // Day and time are HOUSE time (see above), so a code reads naturally
 // in chat AND resolves to the same absolute moment for every user.
+// The seconds pair is optional on parse (early codes were HHMM and
+// resolve to :00), but always emitted — a shared moment is a moment.
 // Codes also travel as links via the URL fragment:
-// https://fishtank.live/#FTL1-s03-D11-1817-kitchen (fragments never
+// https://fishtank.live/#FTL1-s03-D11-181745-kitchen (fragments never
 // reach the server; extensions pick them up client-side).
 
-const SHARE_CODE_RE = /^FTL1-(s\d{2})-D(\d{1,2})-(\d{2})(\d{2})(?:-([a-z0-9-]+))?$/i;
+const SHARE_CODE_RE = /^FTL1-(s\d{2})-D(\d{1,2})-(\d{2})(\d{2})(\d{2})?(?:-([a-z0-9-]+))?$/i;
 
 /**
  * Build a share code from structured fields.
  *
  * @param {{season: string, day: number, time: string, room?: string|null}} parts
- *   - season e.g. 's03'; day 1-based; time 'HH:MM' house-local 24h;
- *     room code or null for "land on the grid"
- * @returns {string} e.g. 'FTL1-s03-D11-1817-kitchen'
+ *   - season e.g. 's03'; day 1-based; time 'HH:MM:SS' house-local 24h
+ *     ('HH:MM' also accepted, meaning :00); room code or null for
+ *     "land on the grid"
+ * @returns {string} e.g. 'FTL1-s03-D11-181745-kitchen'
  */
 export function buildShareCode({ season, day, time, room }) {
-  return `FTL1-${season}-D${day}-${time.replace(':', '')}${room ? `-${room}` : ''}`;
+  return `FTL1-${season}-D${day}-${time.replace(/:/g, '')}${room ? `-${room}` : ''}`;
 }
 
 /**
@@ -355,7 +358,8 @@ export function buildShareCode({ season, day, time, room }) {
  *
  * @param {string} input
  * @returns {{season: string, day: number, time: string, room: string|null}|null}
- *   null if the input isn't a valid code
+ *   null if the input isn't a valid code. time is always 'HH:MM:SS'
+ *   (seconds-less codes resolve to :00).
  */
 export function parseShareCode(input) {
   if (typeof input !== 'string') return null;
@@ -367,12 +371,13 @@ export function parseShareCode(input) {
   const day = parseInt(m[2], 10);
   const hh = parseInt(m[3], 10);
   const mm = parseInt(m[4], 10);
-  if (day < 1 || hh > 23 || mm > 59) return null;
+  const ss = m[5] ? parseInt(m[5], 10) : 0;
+  if (day < 1 || hh > 23 || mm > 59 || ss > 59) return null;
   return {
     season: m[1].toLowerCase(),
     day,
-    time: `${m[3]}:${m[4]}`,
-    room: m[5] ? m[5].toLowerCase() : null,
+    time: `${m[3]}:${m[4]}:${m[5] || '00'}`,
+    room: m[6] ? m[6].toLowerCase() : null,
   };
 }
 
