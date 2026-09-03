@@ -12,6 +12,18 @@
 
 import { fetchBytes, isRegistered } from '../core/transport.js';
 
+function isArrayBuffer(data) {
+    return Object.prototype.toString.call(data) === '[object ArrayBuffer]';
+}
+
+function isUint8Array(data) {
+    return Object.prototype.toString.call(data) === '[object Uint8Array]';
+}
+
+function isBlob(data) {
+    return typeof Blob !== 'undefined' && data instanceof Blob;
+}
+
 /**
  * Trigger a browser download for a chunk of bytes.
  *
@@ -26,9 +38,9 @@ import { fetchBytes, isRegistered } from '../core/transport.js';
  */
 function saveBytes(data, filename, mimeType = 'application/octet-stream') {
     let blob;
-    if (data instanceof Blob) {
+    if (isBlob(data)) {
         blob = data;
-    } else if (data instanceof Uint8Array || data instanceof ArrayBuffer) {
+    } else if (isUint8Array(data) || isArrayBuffer(data)) {
         blob = new Blob([data], { type: mimeType });
     } else {
         throw new Error('[ftl-ext-sdk] download.saveBytes requires Uint8Array, ArrayBuffer, or Blob');

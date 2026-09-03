@@ -22,9 +22,35 @@ import { site, chat, ui, socket } from 'ftl-ext-sdk';
 
 ### Tampermonkey / Greasemonkey
 
-[Implementation Bounty Open](https://github.com/BarryThePirate/ftl-ext-sdk/issues/1). Reward: ₣1,000 Site Tokens.
+Load the bundled SDK with `@require` and use the global `window.FTL` object:
 
-Support planned. The SDK currently uses ES module exports and needs a UMD/IIFE bundle with `window.FTL` for userscript environments.
+```js
+// ==UserScript==
+// @name         Fishtank Live SDK Example
+// @match        https://www.fishtank.live/*
+// @match        https://fishtank.live/*
+// @require      https://cdn.jsdelivr.net/gh/BarryThePirate/ftl-ext-sdk@main/dist/ftl-ext-sdk.bundle.min.js
+// @grant        none
+// ==/UserScript==
+
+(async () => {
+    const { site, chat, socket, ui } = window.FTL;
+
+    await site.whenReady();
+    await socket.connect({ token: null });
+
+    chat.messages.onMessage((msg) => {
+        console.log(`[${msg.role || 'user'}] ${msg.username}: ${msg.message}`);
+    });
+
+    ui.toasts.notify('FTL userscript connected', { type: 'success' });
+})();
+```
+
+See [`examples/tampermonkey-chat-toast.user.js`](examples/tampermonkey-chat-toast.user.js)
+for a complete userscript. The published UMD bundle includes
+`socket.io-client` and `socket.io-msgpack-parser`, so userscripts do not need
+additional `@require` entries for socket dependencies.
 
 ## Quick Start
 
@@ -86,7 +112,7 @@ See also:
 
 ```bash
 npm install
-npm run build    # Builds dist/ftl-ext-sdk.bundle.js
+npm run build    # Builds dist/ftl-ext-sdk.bundle.js and dist/ftl-ext-sdk.bundle.min.js
 npm run watch    # Rebuild on changes
 ```
 
